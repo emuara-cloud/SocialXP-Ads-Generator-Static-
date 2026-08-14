@@ -1,0 +1,6 @@
+{
+  "name": "Social Ads Generator",
+  "description": "Social Ads Generator - 300x600 Instagram Feed banner editor and exporter for DV360.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
