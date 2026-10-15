@@ -40,6 +40,16 @@ export interface BannerConfig {
   // Carousel options (available for 4:5 and 1:1)
   isCarousel?: boolean;
   carouselImages?: { dataUrl: string; filename: string }[];
+  carouselAutoSlide?: boolean; // Auto slide transition toggle
+  carouselAutoSlideInterval?: number; // Auto slide interval in seconds
+
+  // Collab Post options (two profiles)
+  isCollab?: boolean;
+  collabProfileName?: string;
+  collabIsVerified?: boolean;
+  collabProfilePicDataUrl?: string;
+  collabProfilePicFilename?: string;
+  collabProfileClickUrl?: string;
 }
 
 export interface Preset {

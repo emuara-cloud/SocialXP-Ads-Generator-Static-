@@ -25,11 +25,43 @@ function hexToRgba(hex: string, alpha: number = 0.85): string {
   return hex;
 }
 
+const VerifiedBadge: React.FC<{ className?: string }> = ({ className = 'w-[13px] h-[13px] shrink-0' }) => (
+  <svg
+    aria-label="Verified"
+    className={`${className} overflow-visible inline-block translate-y-[0.5px]`}
+    viewBox="-1 -1 42 42"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill="#0095F6"
+      d="M20 0L24.3 2.8L29.3 1.5L31.9 5.8L37 7.2L37 12.3L40 16.3L37.5 20L40 23.7L37 27.7L37 32.8L31.9 34.2L29.3 38.5L24.3 37.2L20 40L15.7 37.2L10.7 38.5L8.1 34.2L3 32.8L3 27.7L0 23.7L2.5 20L0 16.3L3 12.3L3 7.2L8.1 5.8L10.7 1.5L15.7 2.8L20 0Z"
+    />
+    <path fill="white" d="M18.3 26L11.5 19.3L13.6 17.2L18.3 21.8L27.6 12.5L29.7 14.6L18.3 26Z" />
+  </svg>
+);
+
 export const BannerPreview: React.FC<BannerPreviewProps> = ({ config, onResetToDefault }) => {
   const [bgBackdrop, setBgBackdrop] = useState<'light' | 'dark'>('light');
   const [clickNotice, setClickNotice] = useState<{ url: string; label: string } | null>(null);
   const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
   const touchStartXRef = React.useRef<number | null>(null);
+
+  // Auto slide effect
+  React.useEffect(() => {
+    if (!config.isCarousel || config.carouselAutoSlide === false) return;
+    const slidesCount = (config.carouselImages && config.carouselImages.length > 0)
+      ? config.carouselImages.length
+      : 1;
+    if (slidesCount <= 1) return;
+
+    const intervalTime = (config.carouselAutoSlideInterval || 3.5) * 1000;
+    const timer = setInterval(() => {
+      setActiveSlideIndex((prev) => (prev + 1) % slidesCount);
+    }, intervalTime);
+
+    return () => clearInterval(timer);
+  }, [config.isCarousel, config.carouselAutoSlide, config.carouselAutoSlideInterval, config.carouselImages]);
 
   const handleSwipeEnd = (endX: number, totalSlides: number) => {
     if (touchStartXRef.current !== null) {
@@ -103,21 +135,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ config, onResetToD
         </div>
       </div>
 
-      {/* Recommended Caption Info Banner */}
-      <div className="w-full bg-blue-50/90 border-b border-blue-200/80 px-4 py-2 flex items-center justify-between gap-2 text-[11px] text-blue-900 shrink-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-blue-950 flex items-center gap-1">
-            <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-            Caption Recommendation:
-          </span>
-          <span className="text-blue-800">
-            • <strong>IG Reels</strong> & <strong>TikTok FYP</strong>: recommended <strong>2 lines</strong>
-          </span>
-          <span className="text-blue-800">
-            • <strong>IG Feed (9:16)</strong>: recommended <strong>1 line</strong>
-          </span>
-        </div>
-      </div>
+
 
       {/* Main Canvas Container */}
       <div
@@ -153,6 +171,12 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ config, onResetToD
             const cleanCtaText = (config.ctaText || 'Shop now')
               .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
               .slice(0, 20);
+            const cleanProfileName = (config.profileName || 'username')
+              .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
+              .slice(0, 25);
+            const cleanCollabProfileName = (config.collabProfileName || 'partner')
+              .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
+              .slice(0, 25);
 
             // ----------------------------------------------------
             // 1. TIKTOK 9:16 FYP OVERLAY LAYOUT
@@ -316,19 +340,45 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ config, onResetToD
                         onClick={(e) => handleElementClick(e, config.profileClickUrl, 'Profile')}
                         className="flex items-center gap-1 cursor-pointer max-w-full overflow-hidden"
                       >
-                        <span className="font-sans text-[13px] font-bold text-white tracking-tight drop-shadow-md leading-tight truncate shrink-0 max-w-[165px]">
-                          {config.profileName || 'username'}
-                        </span>
-
-                        {/* Verified Badge */}
-                        {config.isVerified !== false && (
-                          <svg
-                            aria-label="Verified"
-                            className="w-[14px] h-[14px] shrink-0 fill-[#20d5ec] inline-block"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                          </svg>
+                        {config.isCollab ? (
+                          <div className="flex flex-col justify-center min-w-0 leading-tight">
+                            <div className="flex items-center gap-1 min-w-0">
+                              <span className="font-sans text-[12px] font-bold text-white tracking-tight drop-shadow-md truncate max-w-[145px]">
+                                {cleanProfileName}
+                              </span>
+                              {config.isVerified !== false && (
+                                <svg aria-label="Verified" className="w-[12px] h-[12px] shrink-0 fill-[#20d5ec]" viewBox="0 0 24 24">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                </svg>
+                              )}
+                              <span className="text-[10.5px] text-white/80 font-normal">and</span>
+                            </div>
+                            <div className="flex items-center gap-1 min-w-0">
+                              <span className="font-sans text-[12px] font-bold text-white tracking-tight drop-shadow-md truncate max-w-[145px]">
+                                {cleanCollabProfileName}
+                              </span>
+                              {config.collabIsVerified !== false && (
+                                <svg aria-label="Verified" className="w-[12px] h-[12px] shrink-0 fill-[#20d5ec]" viewBox="0 0 24 24">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="font-sans text-[13px] font-bold text-white tracking-tight drop-shadow-md leading-tight truncate shrink-0 max-w-[165px]">
+                              {cleanProfileName}
+                            </span>
+                            {config.isVerified !== false && (
+                              <svg
+                                aria-label="Verified"
+                                className="w-[14px] h-[14px] shrink-0 fill-[#20d5ec] inline-block"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                              </svg>
+                            )}
+                          </>
                         )}
                       </div>
 
@@ -457,46 +507,72 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ config, onResetToD
                         onClick={(e) => handleElementClick(e, config.profileClickUrl, 'Profile')}
                         className="flex items-center gap-1.5 flex-wrap cursor-pointer"
                       >
-                        <div className="relative shrink-0 w-[32px] h-[32px] flex items-center justify-center">
-                          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 38 38" fill="none">
-                            <defs>
-                              <linearGradient id="instaStoryGradPreviewReels" x1="0%" y1="100%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#FCAF45" />
-                                <stop offset="50%" stopColor="#FD1D1D" />
-                                <stop offset="100%" stopColor="#C13584" />
-                              </linearGradient>
-                            </defs>
-                            <circle cx="19" cy="19" r="17.5" stroke="url(#instaStoryGradPreviewReels)" strokeWidth="2" fill="none" />
-                          </svg>
-                          <img
-                            src={config.profilePicDataUrl}
-                            alt="Profile"
-                            className="w-[25px] h-[25px] rounded-full object-cover relative z-10 block"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=User';
-                            }}
-                          />
-                        </div>
+                        {config.isCollab ? (
+                          <>
+                            <div className="relative shrink-0 w-[36px] h-[36px]">
+                              <img
+                                src={config.collabProfilePicDataUrl || config.profilePicDataUrl}
+                                alt="Collab Profile"
+                                className="w-[22px] h-[22px] rounded-full object-cover absolute top-0 right-0 shadow-sm border border-white/60"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=User';
+                                }}
+                              />
+                              <img
+                                src={config.profilePicDataUrl}
+                                alt="Profile"
+                                className="w-[22px] h-[22px] rounded-full object-cover absolute bottom-0 left-0 ring-2 ring-black shadow-sm z-10"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=User';
+                                }}
+                              />
+                            </div>
 
-                        <span className="font-sans text-[12.5px] font-bold text-white tracking-tight truncate drop-shadow-md">
-                          {(config.profileName || 'username')
-                            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
-                            .slice(0, 25)}
-                        </span>
+                            <div className="flex flex-col justify-center min-w-0 leading-tight">
+                              <div className="flex items-center gap-1 min-w-0">
+                                <span className="font-sans text-[11.5px] font-bold text-white tracking-tight truncate drop-shadow-md">
+                                  {cleanProfileName}
+                                </span>
+                                {config.isVerified !== false && <VerifiedBadge className="w-[11.5px] h-[11.5px]" />}
+                                <span className="text-[10.5px] text-white/80 font-normal">and</span>
+                              </div>
+                              <div className="flex items-center gap-1 min-w-0">
+                                <span className="font-sans text-[11.5px] font-bold text-white tracking-tight truncate drop-shadow-md">
+                                  {cleanCollabProfileName}
+                                </span>
+                                {config.collabIsVerified !== false && <VerifiedBadge className="w-[11.5px] h-[11.5px]" />}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="relative shrink-0 w-[32px] h-[32px] flex items-center justify-center">
+                              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 38 38" fill="none">
+                                <defs>
+                                  <linearGradient id="instaStoryGradPreviewReels" x1="0%" y1="100%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#FCAF45" />
+                                    <stop offset="50%" stopColor="#FD1D1D" />
+                                    <stop offset="100%" stopColor="#C13584" />
+                                  </linearGradient>
+                                </defs>
+                                <circle cx="19" cy="19" r="17.5" stroke="url(#instaStoryGradPreviewReels)" strokeWidth="2" fill="none" />
+                              </svg>
+                              <img
+                                src={config.profilePicDataUrl}
+                                alt="Profile"
+                                className="w-[25px] h-[25px] rounded-full object-cover relative z-10 block"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=User';
+                                }}
+                              />
+                            </div>
 
-                        {/* Verified Badge */}
-                        <svg
-                          aria-label="Verified"
-                          className="w-[13px] h-[13px] shrink-0 translate-y-[0.5px]"
-                          viewBox="-1 -1 42 42"
-                          fill="none"
-                        >
-                          <path
-                            fill="#0095F6"
-                            d="M20 0L24.3 2.8L29.3 1.5L31.9 5.8L37 7.2L37 12.3L40 16.3L37.5 20L40 23.7L37 27.7L37 32.8L31.9 34.2L29.3 38.5L24.3 37.2L20 40L15.7 37.2L10.7 38.5L8.1 34.2L3 32.8L3 27.7L0 23.7L2.5 20L0 16.3L3 12.3L3 7.2L8.1 5.8L10.7 1.5L15.7 2.8L20 0Z"
-                          />
-                          <path fill="white" d="M18.3 26L11.5 19.3L13.6 17.2L18.3 21.8L27.6 12.5L29.7 14.6L18.3 26Z" />
-                        </svg>
+                            <span className="font-sans text-[12.5px] font-bold text-white tracking-tight truncate drop-shadow-md">
+                              {cleanProfileName}
+                            </span>
+                            {config.isVerified !== false && <VerifiedBadge className="w-[13px] h-[13px]" />}
+                          </>
+                        )}
 
                         {/* Follow Button */}
                         {config.showFollowButton && (
@@ -554,54 +630,86 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ config, onResetToD
                       : 'bg-white text-black border-b border-gray-100'
                   }`}
                 >
-                  {/* Story Ring */}
-                  <div className="relative shrink-0 w-[38px] h-[38px] flex items-center justify-center">
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 38 38" fill="none">
-                      <defs>
-                        <linearGradient id="instaStoryGradPreview" x1="0%" y1="100%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#FCAF45" />
-                          <stop offset="50%" stopColor="#FD1D1D" />
-                          <stop offset="100%" stopColor="#C13584" />
-                        </linearGradient>
-                      </defs>
-                      <circle cx="19" cy="19" r="17.5" stroke="url(#instaStoryGradPreview)" strokeWidth="1.8" fill="none" />
-                    </svg>
-                    <img
-                      src={config.profilePicDataUrl}
-                      alt="Profile"
-                      className="w-[30px] h-[30px] rounded-full object-cover relative z-10 block"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=User';
-                      }}
-                    />
-                  </div>
+                  {/* Story Ring or Collab Overlapping Avatars */}
+                  {config.isCollab ? (
+                    <div className="relative shrink-0 w-[38px] h-[38px]">
+                      <img
+                        src={config.collabProfilePicDataUrl || config.profilePicDataUrl}
+                        alt="Collab Profile"
+                        className="w-[24px] h-[24px] rounded-full object-cover absolute top-0 right-0 shadow-xs border border-white/50"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Collab';
+                        }}
+                      />
+                      <img
+                        src={config.profilePicDataUrl}
+                        alt="Profile"
+                        className={`w-[24px] h-[24px] rounded-full object-cover absolute bottom-0 left-0 ring-2 ${is916 ? 'ring-black' : 'ring-white'} shadow-xs z-10`}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=User';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative shrink-0 w-[38px] h-[38px] flex items-center justify-center">
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 38 38" fill="none">
+                        <defs>
+                          <linearGradient id="instaStoryGradPreview" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#FCAF45" />
+                            <stop offset="50%" stopColor="#FD1D1D" />
+                            <stop offset="100%" stopColor="#C13584" />
+                          </linearGradient>
+                        </defs>
+                        <circle cx="19" cy="19" r="17.5" stroke="url(#instaStoryGradPreview)" strokeWidth="1.8" fill="none" />
+                      </svg>
+                      <img
+                        src={config.profilePicDataUrl}
+                        alt="Profile"
+                        className="w-[30px] h-[30px] rounded-full object-cover relative z-10 block"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/100x100/e2e8f0/64748b?text=User';
+                        }}
+                      />
+                    </div>
+                  )}
 
                   {/* Profile Name & Verified */}
-                  <div className="ml-2 flex items-center flex-1 min-w-0 mr-1">
-                    <span
-                      className={`font-sans text-[13.5px] font-semibold tracking-tight truncate ${
-                        is916 ? 'text-white' : 'text-black'
-                      }`}
-                    >
-                      {(config.profileName || 'username')
-                        .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
-                        .slice(0, 25)}
-                    </span>
-
-                    <svg
-                      aria-label="Verified"
-                      className="w-[14px] h-[14px] ml-1 flex-shrink-0 overflow-visible translate-y-[1px]"
-                      viewBox="-1 -1 42 42"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill="#0095F6"
-                        d="M20 0L24.3 2.8L29.3 1.5L31.9 5.8L37 7.2L37 12.3L40 16.3L37.5 20L40 23.7L37 27.7L37 32.8L31.9 34.2L29.3 38.5L24.3 37.2L20 40L15.7 37.2L10.7 38.5L8.1 34.2L3 32.8L3 27.7L0 23.7L2.5 20L0 16.3L3 12.3L3 7.2L8.1 5.8L10.7 1.5L15.7 2.8L20 0Z"
-                      />
-                      <path fill="white" d="M18.3 26L11.5 19.3L13.6 17.2L18.3 21.8L27.6 12.5L29.7 14.6L18.3 26Z" />
-                    </svg>
-                  </div>
+                  {config.isCollab ? (
+                    <div className="ml-2 flex flex-col justify-center flex-1 min-w-0 mr-1 leading-tight">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span
+                          className={`font-sans text-[12px] font-bold tracking-tight truncate ${
+                            is916 ? 'text-white' : 'text-black'
+                          }`}
+                        >
+                          {cleanProfileName}
+                        </span>
+                        {config.isVerified !== false && <VerifiedBadge className="w-[12px] h-[12px]" />}
+                        <span className={`text-[11px] font-normal ${is916 ? 'text-white/80' : 'text-slate-500'}`}>and</span>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span
+                          className={`font-sans text-[12px] font-bold tracking-tight truncate ${
+                            is916 ? 'text-white' : 'text-black'
+                          }`}
+                        >
+                          {cleanCollabProfileName}
+                        </span>
+                        {config.collabIsVerified !== false && <VerifiedBadge className="w-[12px] h-[12px]" />}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="ml-2 flex items-center flex-1 min-w-0 mr-1">
+                      <span
+                        className={`font-sans text-[13.5px] font-semibold tracking-tight truncate ${
+                          is916 ? 'text-white' : 'text-black'
+                        }`}
+                      >
+                        {cleanProfileName}
+                      </span>
+                      {config.isVerified !== false && <VerifiedBadge className="w-[14px] h-[14px] ml-1 flex-shrink-0" />}
+                    </div>
+                  )}
 
                   {/* Tombol Follow */}
                   {config.showFollowButton && (

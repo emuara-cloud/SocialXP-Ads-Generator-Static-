@@ -37,13 +37,23 @@ export const DEFAULT_MAIN_KV = (() => {
   return safeSvgToBase64(svg);
 })();
 
+export const DEFAULT_COLLAB_PROFILE_PIC = (() => {
+  // SVG Data URL for collab avatar silhouette (accented tint)
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#0284c7" />
+    <circle cx="100" cy="75" r="38" fill="#ffffff" />
+    <path d="M 30 180 C 30 128, 170 128, 170 180 Z" fill="#ffffff" />
+  </svg>`;
+  return safeSvgToBase64(svg);
+})();
+
 export const INITIAL_BANNER_CONFIG: BannerConfig = {
   profileName: 'brand',
   isVerified: true,
   followText: 'Follow',
   showFollowButton: true,
   ctaText: 'Shop now',
-  ctaBgColor: '#00C838',
+  ctaBgColor: '#0095F6',
   ctaTextColor: '#ffffff',
   animationStyle: 'blink',
   clickTagUrl: 'https://leverategroup.asia/',
@@ -55,10 +65,10 @@ export const INITIAL_BANNER_CONFIG: BannerConfig = {
   repostClickUrl: '',
   shareClickUrl: '',
   saveClickUrl: '',
-  likesCount: '1,350',
-  commentsCount: '850',
-  shareCount: '1,120',
-  repostCount: '940',
+  likesCount: '18.4K',
+  commentsCount: '342',
+  shareCount: '890',
+  repostCount: '715',
   caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
   profilePicDataUrl: DEFAULT_PROFILE_PIC,
   profilePicFilename: 'profile-pic.jpg',
@@ -68,4 +78,18 @@ export const INITIAL_BANNER_CONFIG: BannerConfig = {
   mainKvMediaType: 'image',
   mainKvObjectFit: 'cover',
   layoutMode: 'reels',
+
+  // Carousel
+  isCarousel: false,
+  carouselAutoSlide: true,
+  carouselAutoSlideInterval: 3.5,
+
+  // Collab Post
+  isCollab: false,
+  collabProfileName: 'partner',
+  collabIsVerified: true,
+  collabProfilePicDataUrl: DEFAULT_COLLAB_PROFILE_PIC,
+  collabProfilePicFilename: 'collab-profile-pic.jpg',
+  collabProfileClickUrl: '',
 };
+

@@ -27,6 +27,7 @@ import {
   Layers,
   ChevronUp,
   ChevronDown,
+  Users,
 } from 'lucide-react';
 
 const TikTokIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
@@ -132,19 +133,85 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
     { name: 'Pure White', hex: '#ffffff' },
   ];
 
-  // Random number generator helper in range 800 - 2,000
-  const getRandomStat = () => {
-    const val = Math.floor(Math.random() * (2000 - 800 + 1)) + 800;
-    return formatSocialNumber(val);
+  // Image Upload handler for Collab Profile Pic
+  const handleCollabProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        if (event.target?.result) {
+          const dataUrl = event.target.result as string;
+          onChange({
+            collabProfilePicDataUrl: dataUrl,
+            collabProfilePicFilename: file.name,
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Helper to parse numeric value from formatted strings like "18.4K", "1,250", etc.
+  const parseSocialValue = (str: string, fallback: number = 18000): number => {
+    if (!str) return fallback;
+    const clean = str.trim().toUpperCase();
+    if (clean.endsWith('K')) {
+      const n = parseFloat(clean.replace('K', ''));
+      return isNaN(n) ? fallback : Math.round(n * 1000);
+    }
+    if (clean.endsWith('M')) {
+      const n = parseFloat(clean.replace('M', ''));
+      return isNaN(n) ? fallback : Math.round(n * 1000000);
+    }
+    const digits = parseInt(clean.replace(/[^0-9]/g, ''), 10);
+    return isNaN(digits) ? fallback : digits;
+  };
+
+  // Realistic Social Media Metrics Randomizer
+  // Logic: Likes must always be significantly higher than Comments, Shares, and Reposts/Saves
+  // Likes: 4,500 - 48,000
+  // Comments: 1.5% - 4.5% of Likes
+  // Shares: 2.5% - 8% of Likes
+  // Reposts: 3% - 9% of Likes
+  const generateRandomLikes = (): number => {
+    return Math.floor(Math.random() * (48000 - 4500 + 1)) + 4500;
   };
 
   const handleRandomizeAll = () => {
+    const likes = generateRandomLikes();
+    const comments = Math.max(35, Math.round(likes * (0.015 + Math.random() * 0.03)));
+    const shares = Math.max(60, Math.round(likes * (0.025 + Math.random() * 0.055)));
+    const reposts = Math.max(75, Math.round(likes * (0.03 + Math.random() * 0.06)));
+
     onChange({
-      likesCount: getRandomStat(),
-      commentsCount: getRandomStat(),
-      shareCount: getRandomStat(),
-      repostCount: getRandomStat(),
+      likesCount: formatSocialNumber(likes),
+      commentsCount: formatSocialNumber(comments),
+      shareCount: formatSocialNumber(shares),
+      repostCount: formatSocialNumber(reposts),
     });
+  };
+
+  const handleRandomizeLikes = () => {
+    const newLikes = generateRandomLikes();
+    onChange({ likesCount: formatSocialNumber(newLikes) });
+  };
+
+  const handleRandomizeComments = () => {
+    const curLikes = parseSocialValue(config.likesCount, 18000);
+    const comments = Math.max(35, Math.round(curLikes * (0.015 + Math.random() * 0.03)));
+    onChange({ commentsCount: formatSocialNumber(comments) });
+  };
+
+  const handleRandomizeShares = () => {
+    const curLikes = parseSocialValue(config.likesCount, 18000);
+    const shares = Math.max(60, Math.round(curLikes * (0.025 + Math.random() * 0.055)));
+    onChange({ shareCount: formatSocialNumber(shares) });
+  };
+
+  const handleRandomizeReposts = () => {
+    const curLikes = parseSocialValue(config.likesCount, 18000);
+    const reposts = Math.max(75, Math.round(curLikes * (0.03 + Math.random() * 0.06)));
+    onChange({ repostCount: formatSocialNumber(reposts) });
   };
 
   // Carousel Slide Upload Handlers
@@ -437,76 +504,86 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
               </div>
             )}
 
-            <div className="space-y-2">
-              <div className="w-full h-36 rounded-lg overflow-hidden border border-slate-300 bg-slate-900 relative group flex items-center justify-center">
-                <img
-                  src={config.mainKvDataUrl}
-                  alt="Main KV"
-                  className={`w-full h-full ${
-                    (config.mainKvObjectFit || (config.mainKvAspectRatio === '9:16' ? 'contain' : 'cover')) === 'contain'
-                      ? 'object-contain'
-                      : 'object-cover'
-                  }`}
-                />
-                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
-                  <span className="text-[11px] text-white font-medium">
-                    Preview Aspect Ratio {config.mainKvAspectRatio || '4:5'} (
-                    {(config.mainKvObjectFit || (config.mainKvAspectRatio === '9:16' ? 'contain' : 'cover')) === 'contain' ? 'Contain' : 'Cover'})
-                  </span>
+            {/* Main KV Upload - Only shown for Single Image / Non-carousel mode */}
+            {!config.isCarousel && (
+              <div className="space-y-2">
+                <div className="w-full h-36 rounded-lg overflow-hidden border border-slate-300 bg-slate-900 relative group flex items-center justify-center">
+                  <img
+                    src={config.mainKvDataUrl}
+                    alt="Main KV"
+                    className={`w-full h-full ${
+                      (config.mainKvObjectFit || (config.mainKvAspectRatio === '9:16' ? 'contain' : 'cover')) === 'contain'
+                        ? 'object-contain'
+                        : 'object-cover'
+                    }`}
+                  />
+                  <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
+                    <span className="text-[11px] text-white font-medium">
+                      Preview Aspect Ratio {config.mainKvAspectRatio || '4:5'} (
+                      {(config.mainKvObjectFit || (config.mainKvAspectRatio === '9:16' ? 'contain' : 'cover')) === 'contain' ? 'Contain' : 'Cover'})
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <label className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg cursor-pointer text-slate-700 transition font-medium shadow-2xs">
-                <Upload className="w-3.5 h-3.5 text-[#00C838]" />
-                <span>Upload Main KV (PNG, JPG, WEBP)</span>
-                <input
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
-                  onChange={handleMainKvUpload}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-[10px] text-slate-500 mt-1">
-                File: <span className="text-slate-700 font-mono">{config.mainKvFilename}</span>
-              </p>
-            </div>
+                <label className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg cursor-pointer text-slate-700 transition font-medium shadow-2xs">
+                  <Upload className="w-3.5 h-3.5 text-[#00C838]" />
+                  <span>Upload Main KV (PNG, JPG, WEBP)</span>
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
+                    onChange={handleMainKvUpload}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  File: <span className="text-slate-700 font-mono">{config.mainKvFilename}</span>
+                </p>
+              </div>
+            )}
 
             {/* Carousel Slides Manager (When Carousel mode is active for 4:5 or 1:1) */}
             {config.isCarousel && ((config.mainKvAspectRatio || '4:5') === '4:5' || config.mainKvAspectRatio === '1:1') && (
-              <div className="pt-2 border-t border-slate-200/80 space-y-2">
+              <div className="pt-2 border-t border-slate-200/80 space-y-3">
+                {/* Auto Slide Toggle */}
+                <div className="flex items-center justify-between p-2.5 bg-slate-100/90 rounded-lg border border-slate-200/80">
+                  <div>
+                    <span className="font-semibold text-slate-800 text-[11px] block">Auto Slide Carousel</span>
+                    <span className="text-[10px] text-slate-500">Automatically transitions slides every 3.5s</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={config.carouselAutoSlide !== false}
+                    onChange={(e) => onChange({ carouselAutoSlide: e.target.checked })}
+                    className="w-4 h-4 accent-[#00C838] cursor-pointer rounded"
+                  />
+                </div>
+
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
                     <Layers className="w-3.5 h-3.5 text-[#00C838]" />
-                    Carousel Slides ({config.carouselImages?.length || 2}):
+                    Carousel Cards ({config.carouselImages?.length || 2}):
                   </span>
-                  {(config.carouselImages?.length || 2) < 6 && (
-                    <button
-                      type="button"
-                      onClick={handleAddCarouselSlide}
-                      className="text-[10px] font-bold text-[#00C838] hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2 py-0.5 rounded-md flex items-center gap-1 transition cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Slide
-                    </button>
-                  )}
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    Swipeable Instagram Cards
+                  </span>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {(config.carouselImages || [
                     { dataUrl: config.mainKvDataUrl, filename: config.mainKvFilename || 'slide1.jpg' },
                     { dataUrl: config.mainKvDataUrl, filename: 'slide2.jpg' },
                   ]).map((slide, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 shadow-2xs">
                       <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
                       <img
                         src={slide.dataUrl}
-                        alt={`Slide ${idx + 1}`}
+                        alt={`Card ${idx + 1}`}
                         className="w-10 h-10 rounded object-cover border border-slate-300 shrink-0"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-semibold text-slate-700 truncate">Slide {idx + 1}</p>
+                        <p className="text-[10px] font-semibold text-slate-700 truncate">Card {idx + 1}</p>
                         <p className="text-[9px] text-slate-400 font-mono truncate">{slide.filename}</p>
                       </div>
 
@@ -517,7 +594,7 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                           disabled={idx === 0}
                           onClick={() => handleMoveCarouselSlide(idx, 'up')}
                           className="p-0.5 text-slate-500 hover:text-slate-800 disabled:opacity-20 hover:bg-slate-200 rounded cursor-pointer transition disabled:cursor-not-allowed"
-                          title="Move Slide Up"
+                          title="Move Card Up"
                         >
                           <ChevronUp className="w-3 h-3" />
                         </button>
@@ -526,13 +603,13 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                           disabled={idx === (config.carouselImages?.length || 2) - 1}
                           onClick={() => handleMoveCarouselSlide(idx, 'down')}
                           className="p-0.5 text-slate-500 hover:text-slate-800 disabled:opacity-20 hover:bg-slate-200 rounded cursor-pointer transition disabled:cursor-not-allowed"
-                          title="Move Slide Down"
+                          title="Move Card Down"
                         >
                           <ChevronDown className="w-3 h-3" />
                         </button>
                       </div>
 
-                      <label className="p-1 text-slate-600 hover:text-[#00C838] hover:bg-white rounded cursor-pointer transition shrink-0" title="Replace Slide Image">
+                      <label className="p-1 text-slate-600 hover:text-[#00C838] hover:bg-white rounded cursor-pointer transition shrink-0" title="Upload / Replace Image">
                         <Upload className="w-3.5 h-3.5" />
                         <input
                           type="file"
@@ -546,7 +623,7 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                           type="button"
                           onClick={() => handleRemoveCarouselSlide(idx)}
                           className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition shrink-0 cursor-pointer"
-                          title="Remove Slide"
+                          title="Remove Card"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -554,6 +631,18 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                     </div>
                   ))}
                 </div>
+
+                {/* Add Slide button placed below the last carousel card */}
+                {(config.carouselImages?.length || 2) < 10 && (
+                  <button
+                    type="button"
+                    onClick={handleAddCarouselSlide}
+                    className="w-full py-2 px-3 border-2 border-dashed border-emerald-300 hover:border-[#00C838] bg-emerald-50/50 hover:bg-emerald-50 text-[#00C838] font-bold text-[11px] rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Slide (Card {(config.carouselImages?.length || 2) + 1})</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -589,6 +678,104 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
             <p className="text-[10px] text-slate-400 mt-1">
               Max 25 characters & no emojis/icons.
             </p>
+          </div>
+
+          {/* Main Account Verified Badge Toggle */}
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between">
+            <div>
+              <span className="font-semibold text-slate-800 block text-[11px]">Verified Badge</span>
+              <span className="text-[10px] text-slate-500 font-normal">Blue checkmark on main profile</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={config.isVerified !== false}
+              onChange={(e) => onChange({ isVerified: e.target.checked })}
+              className="w-4 h-4 accent-[#0095F6] cursor-pointer rounded"
+            />
+          </div>
+
+          {/* Collab Post Toggle (2 Profiles) */}
+          <div className="p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-200/80 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-indigo-600" />
+                <div>
+                  <span className="font-semibold text-slate-800 block text-[11px]">Collab Post (2 Profiles)</span>
+                  <span className="text-[10px] text-slate-500">Instagram-style co-authored post</span>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={!!config.isCollab}
+                onChange={(e) => onChange({ isCollab: e.target.checked })}
+                className="w-4 h-4 accent-indigo-600 cursor-pointer rounded"
+              />
+            </div>
+
+            {config.isCollab && (
+              <div className="pt-2.5 border-t border-indigo-200/70 space-y-3">
+                {/* Collab Profile Pic Upload */}
+                <div>
+                  <label className="block font-semibold text-slate-800 text-[11px] mb-1.5 flex items-center justify-between">
+                    <span>Collab Profile Picture</span>
+                    <span className="text-[10px] text-slate-400 font-normal">2nd Account</span>
+                  </label>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-500 shrink-0 bg-white shadow-xs">
+                      <img
+                        src={config.collabProfilePicDataUrl || config.profilePicDataUrl}
+                        alt="Collab Pic"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="flex items-center justify-center gap-1.5 w-full px-2.5 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg cursor-pointer text-slate-700 transition font-medium text-[11px] shadow-2xs">
+                        <Upload className="w-3 h-3 text-indigo-600" />
+                        <span>Upload Collab Photo</span>
+                        <input type="file" accept="image/*" onChange={handleCollabProfilePicUpload} className="hidden" />
+                      </label>
+                      <p className="text-[9px] text-slate-500 mt-0.5 truncate font-mono">
+                        {config.collabProfilePicFilename || 'collab-profile-pic.jpg'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Collab Profile Name */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700 text-[11px]">Collab Account Name</label>
+                    <span className={`text-[9px] font-mono px-1 rounded ${(config.collabProfileName || '').length >= 25 ? 'bg-amber-100 text-amber-700 font-bold' : 'text-slate-500'}`}>
+                      {(config.collabProfileName || '').length} / 25
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={25}
+                    value={config.collabProfileName || ''}
+                    onChange={(e) => {
+                      const cleaned = e.target.value
+                        .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
+                        .slice(0, 25);
+                      onChange({ collabProfileName: cleaned });
+                    }}
+                    placeholder="e.g. partner"
+                    className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs"
+                  />
+                </div>
+
+                {/* Collab Verified Checkbox */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-700">Collab Verified Badge</span>
+                  <input
+                    type="checkbox"
+                    checked={config.collabIsVerified !== false}
+                    onChange={(e) => onChange({ collabIsVerified: e.target.checked })}
+                    className="w-4 h-4 accent-indigo-600 cursor-pointer rounded"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between">
@@ -878,6 +1065,19 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                 </div>
               </div>
 
+              {config.isCollab && (
+                <div>
+                  <label className="font-semibold text-indigo-700 block mb-0.5">Collab Profile Link</label>
+                  <input
+                    type="url"
+                    value={config.collabProfileClickUrl || ''}
+                    onChange={(e) => onChange({ collabProfileClickUrl: e.target.value })}
+                    placeholder={config.clickTagUrl || 'https://...'}
+                    className="w-full bg-white border border-indigo-200 rounded-md px-2.5 py-1 text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono text-[10px]"
+                  />
+                </div>
+              )}
+
               <div>
                 <label className="font-semibold text-slate-700 block mb-0.5">Save Button</label>
                 <input
@@ -902,16 +1102,16 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
             <button
               onClick={handleRandomizeAll}
               type="button"
-              className="flex items-center gap-1 px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-semibold rounded-md border border-rose-200 transition cursor-pointer active:scale-95"
-              title="Randomize all stats (800 - 2,000)"
+              className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-semibold rounded-md border border-rose-200 transition cursor-pointer active:scale-95"
+              title="Generate balanced realistic metrics (Likes > Saves > Shares > Comments)"
             >
-              <Dices className="w-3 h-3 text-rose-600" />
+              <Dices className="w-3.5 h-3.5 text-rose-600" />
               <span>Randomize All</span>
             </button>
           </div>
 
           <p className="text-[11px] text-slate-500">
-            Customize social proof metrics displayed on the banner (randomize generates range 800 - 2,000):
+            Customize social proof metrics. Likes are automatically kept proportionally higher than comments, shares, and reposts for realistic organic engagement:
           </p>
 
           <div className="grid grid-cols-2 gap-3">
@@ -922,9 +1122,9 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                 </label>
                 <button
                   type="button"
-                  onClick={() => onChange({ likesCount: getRandomStat() })}
-                  className="p-1 text-slate-400 hover:text-rose-600 transition rounded hover:bg-slate-200/60"
-                  title="Generate random likes (800-2,000)"
+                  onClick={handleRandomizeLikes}
+                  className="p-1 text-slate-400 hover:text-rose-600 transition rounded hover:bg-slate-200/60 cursor-pointer"
+                  title="Generate random high likes (4,500 - 48,000)"
                 >
                   <RefreshCw className="w-3 h-3" />
                 </button>
@@ -946,9 +1146,9 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                 </label>
                 <button
                   type="button"
-                  onClick={() => onChange({ commentsCount: getRandomStat() })}
-                  className="p-1 text-slate-400 hover:text-[#00C838] transition rounded hover:bg-slate-200/60"
-                  title="Generate random comments (800-2,000)"
+                  onClick={handleRandomizeComments}
+                  className="p-1 text-slate-400 hover:text-[#00C838] transition rounded hover:bg-slate-200/60 cursor-pointer"
+                  title="Generate proportional comments (~2% of likes)"
                 >
                   <RefreshCw className="w-3 h-3" />
                 </button>
@@ -970,9 +1170,9 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
                 </label>
                 <button
                   type="button"
-                  onClick={() => onChange({ shareCount: getRandomStat() })}
-                  className="p-1 text-slate-400 hover:text-emerald-600 transition rounded hover:bg-slate-200/60"
-                  title="Generate random shares (800-2,000)"
+                  onClick={handleRandomizeShares}
+                  className="p-1 text-slate-400 hover:text-emerald-600 transition rounded hover:bg-slate-200/60 cursor-pointer"
+                  title="Generate proportional shares (~4% of likes)"
                 >
                   <RefreshCw className="w-3 h-3" />
                 </button>
@@ -990,13 +1190,13 @@ export const EditorControls: React.FC<EditorControlsProps> = ({
             <div className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
               <div className="flex items-center justify-between mb-1">
                 <label className="font-semibold text-slate-700 flex items-center gap-1">
-                  <Repeat className="w-3.5 h-3.5 text-amber-600" /> Reposts
+                  <Repeat className="w-3.5 h-3.5 text-amber-600" /> Reposts / Saves
                 </label>
                 <button
                   type="button"
-                  onClick={() => onChange({ repostCount: getRandomStat() })}
-                  className="p-1 text-slate-400 hover:text-amber-600 transition rounded hover:bg-slate-200/60"
-                  title="Generate random reposts (800-2,000)"
+                  onClick={handleRandomizeReposts}
+                  className="p-1 text-slate-400 hover:text-amber-600 transition rounded hover:bg-slate-200/60 cursor-pointer"
+                  title="Generate proportional reposts (~5% of likes)"
                 >
                   <RefreshCw className="w-3 h-3" />
                 </button>

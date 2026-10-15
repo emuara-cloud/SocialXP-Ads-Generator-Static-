@@ -65,7 +65,8 @@ export function generateHtmlOutput(
   config: BannerConfig,
   profilePicAssetFilename: string,
   mainKvAssetFilename: string,
-  carouselFilenames: string[] = []
+  carouselFilenames: string[] = [],
+  collabPicAssetFilename: string = ''
 ): string {
   // Generate animation CSS based on chosen style
   let animationCss = '';
@@ -84,10 +85,15 @@ export function generateHtmlOutput(
     animationClass = 'animate-cta';
   }
 
-  const verifiedBadgeSvg = `<svg aria-label="Verified" class="w-[14px] h-[14px] ml-1 flex-shrink-0 overflow-visible translate-y-[1px]" viewBox="-1 -1 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+  const verifiedBadgeSvg = config.isVerified !== false ? `<svg aria-label="Verified" class="w-[13px] h-[13px] shrink-0 inline-block translate-y-[0.5px]" viewBox="-1 -1 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fill="#0095F6" d="M20 0L24.3 2.8L29.3 1.5L31.9 5.8L37 7.2L37 12.3L40 16.3L37.5 20L40 23.7L37 27.7L37 32.8L31.9 34.2L29.3 38.5L24.3 37.2L20 40L15.7 37.2L10.7 38.5L8.1 34.2L3 32.8L3 27.7L0 23.7L2.5 20L0 16.3L3 12.3L3 7.2L8.1 5.8L10.7 1.5L15.7 2.8L20 0Z"/>
           <path fill="white" d="M18.3 26L11.5 19.3L13.6 17.2L18.3 21.8L27.6 12.5L29.7 14.6L18.3 26Z"/>
-        </svg>`;
+        </svg>` : '';
+
+  const collabVerifiedBadgeSvg = config.collabIsVerified !== false ? `<svg aria-label="Verified" class="w-[13px] h-[13px] shrink-0 inline-block translate-y-[0.5px]" viewBox="-1 -1 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#0095F6" d="M20 0L24.3 2.8L29.3 1.5L31.9 5.8L37 7.2L37 12.3L40 16.3L37.5 20L40 23.7L37 27.7L37 32.8L31.9 34.2L29.3 38.5L24.3 37.2L20 40L15.7 37.2L10.7 38.5L8.1 34.2L3 32.8L3 27.7L0 23.7L2.5 20L0 16.3L3 12.3L3 7.2L8.1 5.8L10.7 1.5L15.7 2.8L20 0Z"/>
+          <path fill="white" d="M18.3 26L11.5 19.3L13.6 17.2L18.3 21.8L27.6 12.5L29.7 14.6L18.3 26Z"/>
+        </svg>` : '';
 
   const defaultUrl = escapeHtml(config.clickTagUrl || 'https://leverategroup.asia/');
   const profileUrl = escapeHtml(config.profileClickUrl || config.clickTagUrl || 'https://leverategroup.asia/');
@@ -110,6 +116,18 @@ export function generateHtmlOutput(
     (config.ctaText || 'Shop now')
       .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
       .slice(0, 20)
+  );
+
+  const cleanProfileName = escapeHtml(
+    (config.profileName || 'username')
+      .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
+      .slice(0, 25)
+  );
+
+  const cleanCollabProfileName = escapeHtml(
+    (config.collabProfileName || 'partner')
+      .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
+      .slice(0, 25)
   );
 
   const followBtnHtml = config.showFollowButton
@@ -151,10 +169,17 @@ export function generateHtmlOutput(
         <!-- 1. Profile Avatar + Red Plus Badge -->
         <div class="w-10 flex flex-col items-center justify-center">
           <div onclick="openLanding(clickTagProfile, event)" class="relative cursor-pointer mb-0.5">
-            <img src="${profilePicAssetFilename}" alt="Profile" class="w-[38px] h-[38px] rounded-full object-cover border border-white/90 shadow-md">
+            ${
+              config.isCollab
+                ? `<div class="relative w-[40px] h-[40px]">
+                    <img src="${collabPicAssetFilename || profilePicAssetFilename}" alt="Collab Profile" class="w-[24px] h-[24px] rounded-full object-cover border border-white/80 shadow-md absolute top-0 right-0">
+                    <img src="${profilePicAssetFilename}" alt="Profile" class="w-[24px] h-[24px] rounded-full object-cover ring-2 ring-black shadow-md absolute bottom-0 left-0 z-10">
+                  </div>`
+                : `<img src="${profilePicAssetFilename}" alt="Profile" class="w-[38px] h-[38px] rounded-full object-cover border border-white/90 shadow-md">`
+            }
             ${
               config.showFollowButton
-                ? `<div onclick="openLanding(clickTagFollow, event)" class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#ff2c55] text-white rounded-full flex items-center justify-center shadow-md border border-white cursor-pointer"><svg class="w-2.5 h-2.5 text-white stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></div>`
+                ? `<div onclick="openLanding(clickTagFollow, event)" class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#ff2c55] text-white rounded-full flex items-center justify-center shadow-md border border-white cursor-pointer z-20"><svg class="w-2.5 h-2.5 text-white stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></div>`
                 : ''
             }
           </div>
@@ -218,10 +243,24 @@ export function generateHtmlOutput(
       <div class="absolute left-2.5 right-14 bottom-2.5 z-20 flex flex-col gap-1 text-white">
         <!-- Profile Row -->
         <div onclick="openLanding(clickTagProfile, event)" class="flex items-center gap-1 cursor-pointer max-w-full overflow-hidden">
-          <span class="font-sans text-[13px] font-bold text-white tracking-tight drop-shadow-md leading-tight truncate shrink-0 max-w-[165px]">
-            ${escapeHtml(config.profileName || 'username')}
-          </span>
-          ${tiktokVerifiedBadge}
+          ${
+            config.isCollab
+              ? `<div class="flex flex-col justify-center min-w-0 leading-tight">
+                  <div class="flex items-center gap-1 min-w-0">
+                    <span class="font-sans text-[12px] font-bold text-white tracking-tight drop-shadow-md truncate max-w-[145px]">${cleanProfileName}</span>
+                    ${config.isVerified !== false ? `<svg aria-label="Verified" class="w-[12px] h-[12px] shrink-0 fill-[#20d5ec]" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>` : ''}
+                    <span class="text-[10.5px] text-white/80 font-normal">and</span>
+                  </div>
+                  <div class="flex items-center gap-1 min-w-0">
+                    <span class="font-sans text-[12px] font-bold text-white tracking-tight drop-shadow-md truncate max-w-[145px]">${cleanCollabProfileName}</span>
+                    ${config.collabIsVerified !== false ? `<svg aria-label="Verified" class="w-[12px] h-[12px] shrink-0 fill-[#20d5ec]" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>` : ''}
+                  </div>
+                </div>`
+              : `<span class="font-sans text-[13px] font-bold text-white tracking-tight drop-shadow-md leading-tight truncate shrink-0 max-w-[165px]">
+                  ${cleanProfileName}
+                </span>
+                ${tiktokVerifiedBadge}`
+          }
         </div>
 
         <!-- Caption -->
@@ -458,6 +497,17 @@ export function generateHtmlOutput(
         }
       });
     }
+
+    ${config.carouselAutoSlide ? `
+    // Auto slide timer
+    var autoSlideTimer = setInterval(function() {
+      if (activeSlide >= totalSlides - 1) {
+        updateSlide(0);
+      } else {
+        updateSlide(activeSlide + 1);
+      }
+    }, ${(config.carouselAutoSlideInterval || 3.5) * 1000});
+    ` : ''}
   </script>`;
     } else {
       mediaHtml = isVideo
@@ -493,30 +543,44 @@ export function generateHtmlOutput(
         ? 'absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/80 via-black/30 to-transparent text-white'
         : 'bg-white text-black border-b border-gray-100'
     }">
-      <div class="relative shrink-0 w-[38px] h-[38px] flex items-center justify-center">
-        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 38 38" fill="none">
-          <defs>
-            <linearGradient id="instaStoryGradZip" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#FCAF45"/>
-              <stop offset="50%" stop-color="#FD1D1D"/>
-              <stop offset="100%" stop-color="#C13584"/>
-            </linearGradient>
-          </defs>
-          <circle cx="19" cy="19" r="17.5" stroke="url(#instaStoryGradZip)" stroke-width="1.8" fill="none"/>
-        </svg>
-        <img src="${profilePicAssetFilename}" alt="Profile" class="w-[30px] h-[30px] rounded-full object-cover relative z-10 block">
-      </div>
-      
-      <div class="ml-2 flex items-center flex-1 min-w-0 mr-1">
-        <span class="font-sans text-[13.5px] font-semibold tracking-tight truncate ${
-          is916Ratio ? 'text-white' : 'text-black'
-        }">${escapeHtml(
-          (config.profileName || 'username')
-            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}-\u{21AA}\u{2934}-\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '')
-            .slice(0, 25)
-        )}</span>
-        ${verifiedBadgeSvg}
-      </div>
+      ${
+        config.isCollab
+          ? `<div class="relative shrink-0 w-[42px] h-[42px]">
+              <img src="${collabPicAssetFilename || profilePicAssetFilename}" alt="Collab Profile" class="w-[26px] h-[26px] rounded-full object-cover border border-white shadow-xs absolute top-0 right-0">
+              <img src="${profilePicAssetFilename}" alt="Profile" class="w-[26px] h-[26px] rounded-full object-cover ring-2 ${is916Ratio ? 'ring-black' : 'ring-white'} shadow-xs absolute bottom-0 left-0 z-10">
+            </div>
+            <div class="ml-2 flex flex-col justify-center flex-1 min-w-0 mr-1 leading-tight">
+              <div class="flex items-center gap-1 min-w-0">
+                <span class="font-sans text-[12px] font-bold tracking-tight truncate ${is916Ratio ? 'text-white' : 'text-black'}">${cleanProfileName}</span>
+                ${config.isVerified !== false ? verifiedBadgeSvg : ''}
+                <span class="text-[11px] font-normal ${is916Ratio ? 'text-white/80' : 'text-slate-500'}">and</span>
+              </div>
+              <div class="flex items-center gap-1 min-w-0">
+                <span class="font-sans text-[12px] font-bold tracking-tight truncate ${is916Ratio ? 'text-white' : 'text-black'}">${cleanCollabProfileName}</span>
+                ${config.collabIsVerified !== false ? collabVerifiedBadgeSvg : ''}
+              </div>
+            </div>`
+          : `<div class="relative shrink-0 w-[38px] h-[38px] flex items-center justify-center">
+              <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 38 38" fill="none">
+                <defs>
+                  <linearGradient id="instaStoryGradZip" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#FCAF45"/>
+                    <stop offset="50%" stop-color="#FD1D1D"/>
+                    <stop offset="100%" stop-color="#C13584"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="19" cy="19" r="17.5" stroke="url(#instaStoryGradZip)" stroke-width="1.8" fill="none"/>
+              </svg>
+              <img src="${profilePicAssetFilename}" alt="Profile" class="w-[30px] h-[30px] rounded-full object-cover relative z-10 block">
+            </div>
+            
+            <div class="ml-2 flex items-center flex-1 min-w-0 mr-1">
+              <span class="font-sans text-[13.5px] font-semibold tracking-tight truncate ${
+                is916Ratio ? 'text-white' : 'text-black'
+              }">${cleanProfileName}</span>
+              ${verifiedBadgeSvg}
+            </div>`
+      }
 
       ${followBtnHtml}
     </div>
@@ -683,8 +747,16 @@ export async function downloadBannerZip(config: BannerConfig): Promise<void> {
     });
   }
 
+  // Extract Collab Profile Pic Asset if enabled
+  let collabPicFilename = '';
+  if (config.isCollab && config.collabProfilePicDataUrl) {
+    const collabAsset = dataURLtoUint8Array(config.collabProfilePicDataUrl);
+    collabPicFilename = `collab-profile-pic.${collabAsset.extension}`;
+    zip.file(collabPicFilename, collabAsset.data);
+  }
+
   // Generate HTML content
-  const htmlContent = generateHtmlOutput(config, profilePicFilename, mainKvFilename, carouselFilenames);
+  const htmlContent = generateHtmlOutput(config, profilePicFilename, mainKvFilename, carouselFilenames, collabPicFilename);
 
   // Add files to Zip package
   zip.file('index.html', htmlContent);
